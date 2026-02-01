@@ -39,7 +39,7 @@ cocos_bot/
 
 ## Requisitos
 
-- Python 3.12 o superior.
+- Python 3.10 o superior (testeado en 3.10, 3.11 y 3.12).
 - Cuenta en Cocos Capital.
 - Credenciales de Gmail configuradas para autenticación 2FA.
 
