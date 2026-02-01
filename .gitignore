@@ -1,0 +1,11 @@
+/.venv/
+build/
+dist/
+*.egg-info/
+/.idea/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.zip
+
