@@ -122,7 +122,10 @@ class MarketService:
 
     def get_market_schedule(self) -> Optional[Dict[str, Any]]:
         """
-        Obtiene los horarios del mercado.
+        Obtiene los horarios de apertura y cierre del mercado.
+        
+        Returns:
+            Optional[Dict[str, Any]]: Información de horarios del mercado o None si falla.
         """
         return self.browser.fetch_data(
             request_url=API_URLS["markets_schedule"],
@@ -131,7 +134,10 @@ class MarketService:
 
     def get_orders(self) -> Optional[Dict[str, Any]]:
         """
-        Obtiene las órdenes del usuario.
+        Obtiene todas las órdenes del usuario (pendientes y ejecutadas).
+        
+        Returns:
+            Optional[Dict[str, Any]]: Información de órdenes o None si no hay órdenes/error.
         """
         orders = self.browser.fetch_data(
             request_url=API_URLS["orders"],
@@ -183,7 +189,12 @@ class MarketService:
             return False
 
     def get_mep_value(self) -> Optional[Dict[str, Any]]:
-        """Obtiene el valor MEP del mercado."""
+        """
+        Obtiene el valor actual del dólar MEP (Mercado Electrónico de Pagos).
+        
+        Returns:
+            Optional[Dict[str, Any]]: Información del valor MEP o None si falla.
+        """
         return self.browser.fetch_data(
             API_URLS["mep_prices"],
             WEB_APP_URLS["portfolio"]
@@ -192,6 +203,12 @@ class MarketService:
     def _get_navigation_ticker_url(self, ticker_type: MarketType) -> Optional[str]:
         """
         Obtiene la URL de navegación para un tipo de ticker específico.
+        
+        Args:
+            ticker_type: Tipo de mercado (STOCKS, CEDEARS, BONDS, etc.).
+            
+        Returns:
+            Optional[str]: URL de navegación o None si el tipo es desconocido.
         """
         # Convertir siempre el tipo de ticker a minúsculas para la comparación
         ticker_type_str = ticker_type.value.lower()
@@ -215,7 +232,12 @@ class MarketService:
         return navigation_url
 
     def _configure_operation(self, operation: str) -> None:
-        """Configura el tipo de operación (compra/venta)."""
+        """
+        Configura el tipo de operación (compra/venta) en la interfaz.
+        
+        Args:
+            operation: Tipo de operación ('BUY' o 'SELL').
+        """
         op_config = OPERATION_SELECTORS[operation]
         self.browser.click_element(
             op_config["button"],
@@ -223,7 +245,12 @@ class MarketService:
         )
 
     def _configure_limit_order(self, limit: str) -> None:
-        """Configura una orden límite con el precio especificado."""
+        """
+        Configura una orden límite con el precio especificado.
+        
+        Args:
+            limit: Precio límite formateado (con coma decimal).
+        """
         time.sleep(3) #No me gusta el tiempo explicito, pero no aparece clickeable rápido.
         self.browser.click_element(
             OPERATION_SELECTORS["general"]["more_options"],
@@ -242,7 +269,13 @@ class MarketService:
         )
 
     def _enter_amount(self, operation: str, amount: str) -> None:
-        """Ingresa el monto o cantidad de la operación."""
+        """
+        Ingresa el monto (compra) o cantidad (venta) de la operación.
+        
+        Args:
+            operation: Tipo de operación ('BUY' o 'SELL').
+            amount: Monto o cantidad formateado.
+        """
         op_config = OPERATION_SELECTORS[operation]
         amount_input = op_config["amount_input"]
 
