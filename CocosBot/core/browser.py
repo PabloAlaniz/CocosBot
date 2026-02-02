@@ -7,9 +7,20 @@ logger = logging.getLogger(__name__)
 import time
 
 class PlaywrightBrowser:
-
+    """
+    Abstracción de Playwright para automatización web.
+    
+    Proporciona métodos de alto nivel para interactuar con páginas web,
+    manejar elementos, interceptar requests, y procesar respuestas.
+    """
 
     def __init__(self, headless=False):
+        """
+        Inicializa el navegador Playwright.
+        
+        Args:
+            headless: Si True, ejecuta el navegador en modo headless (sin UI).
+        """
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch(headless=headless)
         self.page = self.browser.new_page()
@@ -30,12 +41,25 @@ class PlaywrightBrowser:
         logger.info("Navegador cerrado.")
 
     def go_to(self, url, log_message=None):
-        """Navega a una URL específica."""
+        """
+        Navega a una URL específica.
+        
+        Args:
+            url: URL de destino.
+            log_message: Mensaje opcional para logging.
+        """
         self.page.goto(url)
         logger.info(f"Navegado a {url}")
 
     def wait_for_element(self, selector, log_message=None, timeout=None):
-        """Espera a que un elemento sea visible."""
+        """
+        Espera a que un elemento sea visible en la página.
+        
+        Args:
+            selector: Selector CSS del elemento.
+            log_message: Mensaje opcional para logging.
+            timeout: Tiempo máximo de espera en ms (usa DEFAULT_TIMEOUT si no se especifica).
+        """
         timeout = timeout or DEFAULT_TIMEOUT
         self.page.wait_for_selector(selector, timeout=timeout, state="visible")
         logger.info(f"Elemento encontrado: {selector}")
@@ -43,7 +67,14 @@ class PlaywrightBrowser:
             logger.info(log_message)
 
     def click_element(self, selector, log_message=None, timeout=None):
-        """Espera a que un elemento sea visible y hace clic en él."""
+        """
+        Espera a que un elemento sea visible y hace clic en él.
+        
+        Args:
+            selector: Selector CSS del elemento.
+            log_message: Mensaje opcional para logging.
+            timeout: Tiempo máximo de espera en ms.
+        """
         self.wait_for_element(selector, timeout)
         self.page.click(selector)
         logger.info(f"Clic en el elemento: {selector}")
@@ -51,7 +82,15 @@ class PlaywrightBrowser:
             logger.info(log_message)
 
     def fill_input(self, selector, value, log_message=None, timeout=None):
-        """Espera a que un input sea visible y lo llena con un valor."""
+        """
+        Espera a que un input sea visible y lo llena con un valor.
+        
+        Args:
+            selector: Selector CSS del input.
+            value: Valor a ingresar.
+            log_message: Mensaje opcional para logging.
+            timeout: Tiempo máximo de espera en ms.
+        """
         self.wait_for_element(selector, timeout)
         self.page.fill(selector, value)
         logger.info(f"Input {selector} llenado con el valor: {value}")
@@ -110,14 +149,28 @@ class PlaywrightBrowser:
             logger.info(log_message)
 
     def get_text_content(self, selector, timeout=None):
-        """Obtiene el contenido de texto de un elemento."""
+        """
+        Obtiene el contenido de texto de un elemento.
+        
+        Args:
+            selector: Selector CSS del elemento.
+            timeout: Tiempo máximo de espera en ms.
+            
+        Returns:
+            str: Contenido de texto del elemento.
+        """
         self.wait_for_element(selector, timeout)
         text = self.page.text_content(selector)
         logger.info(f"Contenido de texto del elemento {selector}: {text}")
         return text
 
     def take_screenshot(self, filename="screenshot.png"):
-        """Toma una captura de pantalla de la página actual."""
+        """
+        Toma una captura de pantalla de la página actual.
+        
+        Args:
+            filename: Nombre del archivo donde guardar la captura (default: screenshot.png).
+        """
         self.page.screenshot(path=filename)
         logger.info(f"Captura de pantalla guardada en: {filename}")
 
@@ -165,6 +218,15 @@ class PlaywrightBrowser:
                    timeout: int = DEFAULT_TIMEOUT) -> Optional[Dict[str, Any]]:
         """
         Intercepta un request específico y procesa su respuesta.
+        
+        Args:
+            request_url: URL del request a interceptar.
+            navigation_url: URL a la que navegar para disparar el request.
+            process_response: Función opcional para procesar la respuesta antes de retornarla.
+            timeout: Tiempo máximo de espera en ms.
+            
+        Returns:
+            Optional[Dict[str, Any]]: Datos de la respuesta procesados o None si falla.
         """
         try:
             self.go_to(navigation_url)
