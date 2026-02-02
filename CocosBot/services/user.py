@@ -8,18 +8,40 @@ logger = logging.getLogger(__name__)
 
 
 class UserService:
+    """
+    Servicio para manejar operaciones relacionadas con el usuario en Cocos Capital.
+    
+    Este servicio proporciona métodos para obtener información del usuario,
+    su cuenta, portafolio, y gestionar extracciones.
+    """
     def __init__(self, browser):
+        """
+        Inicializa el servicio de usuario.
+        
+        Args:
+            browser: Instancia de PlaywrightBrowser para interactuar con la web.
+        """
         self.browser = browser
 
     def get_user_data(self) -> Optional[Dict[str, Any]]:
-        """Obtiene los datos del usuario."""
+        """
+        Obtiene los datos básicos del usuario.
+        
+        Returns:
+            Optional[Dict[str, Any]]: Datos del usuario o None si falla.
+        """
         return self.browser.fetch_data(
             API_URLS["user_data"],
             WEB_APP_URLS["dashboard"]
         )
 
     def get_account_tier(self) -> Optional[Dict[str, Any]]:
-        """Obtiene el nivel de cuenta del usuario."""
+        """
+        Obtiene el nivel de cuenta (tier) del usuario.
+        
+        Returns:
+            Optional[Dict[str, Any]]: Información del tier de la cuenta o None si falla.
+        """
         return self.browser.fetch_data(
             request_url=API_URLS["account_tier"],
             navigation_url=WEB_APP_URLS["dashboard"]
@@ -81,7 +103,16 @@ class UserService:
             return False
 
     def get_linked_accounts(self, amount: float = 5000, currency: Currency = Currency.ARS) -> Optional[Dict[str, Any]]:
-        """Obtiene las cuentas vinculadas disponibles."""
+        """
+        Obtiene las cuentas bancarias vinculadas disponibles para extracciones.
+        
+        Args:
+            amount: Monto a extraer (default: 5000).
+            currency: Moneda seleccionada (default: Currency.ARS).
+            
+        Returns:
+            Optional[Dict[str, Any]]: Información de cuentas vinculadas o None si falla.
+        """
         try:
             # Llamar a navigate_withdraw_form
             if not self.navigate_withdraw_form(amount, currency):
@@ -102,14 +133,24 @@ class UserService:
             return None
 
     def get_portfolio_data(self) -> Optional[Dict[str, Any]]:
-        """Obtiene los datos del portafolio del usuario."""
+        """
+        Obtiene los datos completos del portafolio del usuario.
+        
+        Returns:
+            Optional[Dict[str, Any]]: Datos del portafolio o None si falla.
+        """
         return self.browser.fetch_data(
             request_url=API_URLS["portfolio_data"],
             navigation_url=WEB_APP_URLS["portfolio"]
         )
 
     def get_portfolio_balance(self) -> Optional[float]:
-        """Obtiene el balance total del portafolio del usuario."""
+        """
+        Obtiene el balance total del portafolio del usuario.
+        
+        Returns:
+            Optional[float]: Balance total o None si falla.
+        """
 
         def process_response(response):
             total_balance = response.get('totalBalance')
@@ -126,7 +167,12 @@ class UserService:
         )
 
     def get_academy_data(self) -> Optional[Dict[str, Any]]:
-        """Obtiene los datos de la sección de Academia."""
+        """
+        Obtiene los datos de la sección de Academia (contenido educativo).
+        
+        Returns:
+            Optional[Dict[str, Any]]: Datos de la Academia o None si falla.
+        """
         return self.browser.fetch_data(
             request_url=API_URLS["academy"],
             navigation_url=WEB_APP_URLS["dashboard"]
