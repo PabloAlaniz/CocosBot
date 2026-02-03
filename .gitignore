@@ -9,3 +9,18 @@ __pycache__/
 .DS_Store
 *.zip
 
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+
+# IDEs
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+*.local
