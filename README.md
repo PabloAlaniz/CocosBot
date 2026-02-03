@@ -110,10 +110,20 @@ with CocosCapital(username, password, gmail_user, gmail_app_pass, headless=False
 - `get_mep_value() -> Dict[str, Any]`: Obtiene el valor del dólar MEP
 ---
 
+## Testing
+
+El proyecto incluye una suite completa de tests:
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+**Coverage actual:** 169 tests, 59% coverage global.
+
 ## To-Do
-- 2FA manual
-- Tests unitarios y de integración 
-- Documentación adicional
+- 2FA manual (sin Gmail)
+- Documentación adicional de métodos avanzados
 
 ## Contribución
 
