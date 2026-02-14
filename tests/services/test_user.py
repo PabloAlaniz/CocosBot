@@ -3,6 +3,8 @@ import pytest
 from unittest.mock import Mock, MagicMock
 from CocosBot.services.user import UserService
 from CocosBot.config.enums import Currency
+from CocosBot.config.urls import WEB_APP_URLS, API_URLS
+from CocosBot.config.selectors import TRANSFER_SELECTORS
 
 
 class TestUserService:
@@ -19,202 +21,193 @@ class TestUserService:
         assert service.browser == mock_browser
 
     def test_get_user_data(self, user_service, mock_browser):
-        """Test getting user data"""
-        # Setup
+        """Test getting user data with correct URLs"""
         expected_data = {"name": "Test User", "email": "test@example.com"}
         mock_browser.fetch_data.return_value = expected_data
 
-        # Execute
         result = user_service.get_user_data()
 
-        # Assert
         assert result == expected_data
-        mock_browser.fetch_data.assert_called_once()
+        mock_browser.fetch_data.assert_called_once_with(
+            API_URLS["user_data"],
+            WEB_APP_URLS["dashboard"]
+        )
 
     def test_get_user_data_none(self, user_service, mock_browser):
         """Test getting user data when it returns None"""
-        # Setup
         mock_browser.fetch_data.return_value = None
 
-        # Execute
         result = user_service.get_user_data()
 
-        # Assert
         assert result is None
 
     def test_get_account_tier(self, user_service, mock_browser):
-        """Test getting account tier"""
-        # Setup
+        """Test getting account tier with correct URLs"""
         expected_tier = {"tier": "premium", "level": 3}
         mock_browser.fetch_data.return_value = expected_tier
 
-        # Execute
         result = user_service.get_account_tier()
 
-        # Assert
         assert result == expected_tier
-        mock_browser.fetch_data.assert_called_once()
+        mock_browser.fetch_data.assert_called_once_with(
+            request_url=API_URLS["account_tier"],
+            navigation_url=WEB_APP_URLS["dashboard"]
+        )
 
     def test_navigate_withdraw_form_ars(self, user_service, mock_browser):
-        """Test navigating withdraw form with ARS"""
-        # Execute
+        """Test navigating withdraw form with ARS uses correct selectors"""
         result = user_service.navigate_withdraw_form(amount=1000.0, currency=Currency.ARS)
 
-        # Assert
         assert result is True
-        mock_browser.click_element.assert_called()
-        mock_browser.fill_input.assert_called_once()
-        mock_browser.wait_for_element.assert_called_once()
+        mock_browser.click_element.assert_any_call(
+            TRANSFER_SELECTORS["withdraw_button"],
+            "Navegando al apartado de extraer desde el dashboard."
+        )
+        mock_browser.click_element.assert_any_call(
+            TRANSFER_SELECTORS["currency_ars"],
+            "Seleccionando moneda ARS."
+        )
+        mock_browser.fill_input.assert_called_once_with(
+            TRANSFER_SELECTORS["amount_input"],
+            "1000.0",
+            "Ingresando monto 1000.0"
+        )
+        mock_browser.page.locator.assert_called_once_with(TRANSFER_SELECTORS["amount_input"])
+        mock_browser.page.locator.return_value.evaluate.assert_called_once_with("el => el.blur()")
+        mock_browser.wait_for_element.assert_called_once_with(
+            TRANSFER_SELECTORS["continue_button"],
+            "Esperando que el botón 'Continuar' habilitado sea visible dentro del contenedor 'Extraé dinero'."
+        )
 
     def test_navigate_withdraw_form_usd(self, user_service, mock_browser):
-        """Test navigating withdraw form with USD"""
-        # Execute
+        """Test navigating withdraw form with USD selects correct currency"""
         result = user_service.navigate_withdraw_form(amount=500.0, currency=Currency.USD)
 
-        # Assert
         assert result is True
-        mock_browser.click_element.assert_called()
-        mock_browser.fill_input.assert_called_once()
+        mock_browser.click_element.assert_any_call(
+            TRANSFER_SELECTORS["currency_usd"],
+            "Seleccionando moneda USD."
+        )
+        mock_browser.fill_input.assert_called_once_with(
+            TRANSFER_SELECTORS["amount_input"],
+            "500.0",
+            "Ingresando monto 500.0"
+        )
 
     def test_navigate_withdraw_form_invalid_currency(self, user_service, mock_browser):
         """Test navigate withdraw form with invalid currency returns False"""
-        # Using a mock object that's not ARS or USD - will be caught in exception handler
-        invalid_currency = Mock()
-        invalid_currency.__eq__ = Mock(return_value=False)
-        
-        # Execute - ValueError is caught and method returns False
+        invalid_currency = "EUR"
+
         result = user_service.navigate_withdraw_form(amount=1000, currency=invalid_currency)
-        
-        # Assert
+
         assert result is False
 
     def test_navigate_withdraw_form_error(self, user_service, mock_browser):
         """Test navigate withdraw form error handling"""
-        # Setup
         mock_browser.click_element.side_effect = Exception("Click failed")
 
-        # Execute
         result = user_service.navigate_withdraw_form(amount=1000, currency=Currency.ARS)
 
-        # Assert
         assert result is False
 
     def test_get_linked_accounts_ars(self, user_service, mock_browser):
         """Test getting linked accounts with ARS"""
-        # Setup
         expected_accounts = [{"bank": "Bank A", "number": "1234"}]
         mock_browser.process_response.return_value = expected_accounts
         mock_response = Mock()
         mock_browser.page.expect_response.return_value.__enter__ = Mock(return_value=Mock(value=mock_response))
         mock_browser.page.expect_response.return_value.__exit__ = Mock(return_value=False)
 
-        # Execute
         result = user_service.get_linked_accounts(amount=5000, currency=Currency.ARS)
 
-        # Assert
         assert result == expected_accounts
 
     def test_get_linked_accounts_usd(self, user_service, mock_browser):
         """Test getting linked accounts with USD"""
-        # Setup
         expected_accounts = [{"bank": "Bank B", "number": "5678"}]
         mock_browser.process_response.return_value = expected_accounts
         mock_response = Mock()
         mock_browser.page.expect_response.return_value.__enter__ = Mock(return_value=Mock(value=mock_response))
         mock_browser.page.expect_response.return_value.__exit__ = Mock(return_value=False)
 
-        # Execute
         result = user_service.get_linked_accounts(amount=1000, currency=Currency.USD)
 
-        # Assert
         assert result == expected_accounts
 
     def test_get_linked_accounts_navigate_fails(self, user_service, mock_browser):
         """Test get_linked_accounts when navigation fails"""
-        # Setup
         mock_browser.click_element.side_effect = Exception("Navigation failed")
 
-        # Execute
         result = user_service.get_linked_accounts()
 
-        # Assert
         assert result is None
 
     def test_get_linked_accounts_error(self, user_service, mock_browser):
         """Test get_linked_accounts error handling"""
-        # Setup
         mock_browser.page.expect_response.side_effect = Exception("Response error")
 
-        # Execute
         result = user_service.get_linked_accounts()
 
-        # Assert
         assert result is None
 
     def test_get_portfolio_data(self, user_service, mock_browser):
-        """Test getting portfolio data"""
-        # Setup
+        """Test getting portfolio data with correct URLs"""
         expected_portfolio = {
             "stocks": [{"ticker": "AAPL", "shares": 10}],
             "total_value": 15000
         }
         mock_browser.fetch_data.return_value = expected_portfolio
 
-        # Execute
         result = user_service.get_portfolio_data()
 
-        # Assert
         assert result == expected_portfolio
-        mock_browser.fetch_data.assert_called_once()
+        mock_browser.fetch_data.assert_called_once_with(
+            request_url=API_URLS["portfolio_data"],
+            navigation_url=WEB_APP_URLS["portfolio"]
+        )
 
     def test_get_portfolio_balance(self, user_service, mock_browser):
-        """Test getting portfolio balance"""
-        # Setup
+        """Test getting portfolio balance verifies custom processor"""
         mock_browser.fetch_data.return_value = 25000.50
 
-        # Execute
         result = user_service.get_portfolio_balance()
 
-        # Assert
         assert result == 25000.50
-        # Verify fetch_data was called with a custom processor
-        assert mock_browser.fetch_data.called
         call_args = mock_browser.fetch_data.call_args
-        assert len(call_args[0]) == 3  # request_url, navigation_url, process_response
+        assert call_args[0][0] == API_URLS["portfolio_balance"]
+        assert call_args[0][1] == WEB_APP_URLS["portfolio"]
+        # Verify the process_response function works correctly
+        process_fn = call_args[0][2]
+        assert process_fn({"totalBalance": 42000.0}) == 42000.0
+        assert process_fn({"other": "data"}) is None
 
     def test_get_portfolio_balance_none(self, user_service, mock_browser):
         """Test getting portfolio balance when None"""
-        # Setup
         mock_browser.fetch_data.return_value = None
 
-        # Execute
         result = user_service.get_portfolio_balance()
 
-        # Assert
         assert result is None
 
     def test_get_academy_data(self, user_service, mock_browser):
-        """Test getting academy data"""
-        # Setup
+        """Test getting academy data with correct URLs"""
         expected_academy = {"courses": [{"name": "Investing 101"}]}
         mock_browser.fetch_data.return_value = expected_academy
 
-        # Execute
         result = user_service.get_academy_data()
 
-        # Assert
         assert result == expected_academy
-        mock_browser.fetch_data.assert_called_once()
+        mock_browser.fetch_data.assert_called_once_with(
+            request_url=API_URLS["academy"],
+            navigation_url=WEB_APP_URLS["dashboard"]
+        )
 
     def test_get_academy_data_none(self, user_service, mock_browser):
         """Test getting academy data when None"""
-        # Setup
         mock_browser.fetch_data.return_value = None
 
-        # Execute
         result = user_service.get_academy_data()
 
-        # Assert
         assert result is None
 
 
@@ -227,20 +220,26 @@ class TestUserServiceIntegration:
         return UserService(mock_browser)
 
     def test_withdraw_flow_complete(self, user_service, mock_browser):
-        """Test complete withdraw flow"""
-        # Setup
+        """Test complete withdraw flow verifies navigation and response"""
         mock_browser.process_response.return_value = [{"bank": "Test Bank"}]
         mock_response = Mock()
         mock_browser.page.expect_response.return_value.__enter__ = Mock(return_value=Mock(value=mock_response))
         mock_browser.page.expect_response.return_value.__exit__ = Mock(return_value=False)
 
-        # Execute
         accounts = user_service.get_linked_accounts(amount=10000, currency=Currency.ARS)
 
-        # Assert
         assert accounts is not None
         assert len(accounts) > 0
-        # Verify the full flow was called
-        assert mock_browser.click_element.called
-        assert mock_browser.fill_input.called
-        assert mock_browser.wait_for_element.called
+        mock_browser.click_element.assert_any_call(
+            TRANSFER_SELECTORS["withdraw_button"],
+            "Navegando al apartado de extraer desde el dashboard."
+        )
+        mock_browser.fill_input.assert_called_once_with(
+            TRANSFER_SELECTORS["amount_input"],
+            "10000",
+            "Ingresando monto 10000"
+        )
+        mock_browser.wait_for_element.assert_called_once_with(
+            TRANSFER_SELECTORS["continue_button"],
+            "Esperando que el botón 'Continuar' habilitado sea visible dentro del contenedor 'Extraé dinero'."
+        )

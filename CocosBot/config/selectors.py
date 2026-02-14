@@ -5,6 +5,7 @@ LOGIN_SELECTORS = {
     "submit_button": 'button[type="submit"]',
     "two_factor_container": 'input#input0',
     "save_device_button": 'button:has-text("Sí, guardar como dispositivo seguro")',
+    "logout_button": 'svg.lucide-log-out',
 }
 
 # Selectores de navegación

@@ -178,7 +178,7 @@ class MarketService:
             self.browser.click_element(order_selector, "Seleccionando la orden en la tabla.")
 
             # Confirmar cancelación
-            cancel_button_selector = COMMON_SELECTORS["cancel_button"]
+            cancel_button_selector = ORDER_SELECTORS["cancel_button"]
             self.browser.click_element(cancel_button_selector, "Clic en el botón 'Cancelar orden'.")
 
             logger.info(f"Orden con monto {amount} y cantidad {quantity} cancelada exitosamente.")
