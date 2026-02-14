@@ -268,6 +268,14 @@ class TestFillInputWithDelay:
         mock_locator.fill.assert_called_once_with("")
         assert mock_locator.type.call_count == 2
 
+    @patch('CocosBot.core.browser.time.sleep')
+    def test_fill_input_with_delay_with_log_message(self, mock_sleep, mock_sync_pw):
+        browser, mock_page, mock_locator = self._make_browser(mock_sync_pw)
+        browser.fill_input_with_delay("input#price", "5", log_message="Filling price")
+
+        mock_locator.fill.assert_called_once_with("")
+        mock_locator.type.assert_called_once_with("5")
+
 
 @patch('CocosBot.core.browser.sync_playwright')
 class TestGetTextContent:
@@ -452,6 +460,92 @@ class TestFetchData:
     def test_fetch_data_timeout(self, mock_sync_pw):
         browser, mock_page = self._make_browser(mock_sync_pw)
         mock_page.expect_response.return_value.__enter__ = Mock(side_effect=TimeoutError("Timeout"))
+        mock_page.expect_response.return_value.__exit__ = Mock(return_value=False)
+
+        result = browser.fetch_data(
+            "https://api.example.com/data",
+            "https://example.com/page"
+        )
+
+        assert result is None
+
+    def test_fetch_data_handle_response_callback(self, mock_sync_pw):
+        browser, mock_page = self._make_browser(mock_sync_pw)
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.url = "https://api.example.com/data"
+        mock_response.json.return_value = {"key": "value"}
+
+        mock_response_info = Mock()
+        mock_response_info.value = mock_response
+        mock_page.expect_response.return_value.__enter__ = Mock(return_value=mock_response_info)
+        mock_page.expect_response.return_value.__exit__ = Mock(return_value=False)
+
+        captured_callback = None
+        def capture_on(event, callback):
+            nonlocal captured_callback
+            if event == "response":
+                captured_callback = callback
+        mock_page.on.side_effect = capture_on
+
+        result = browser.fetch_data(
+            "https://api.example.com/data",
+            "https://example.com/page"
+        )
+
+        assert result == {"key": "value"}
+        # Invoke the captured callback to cover handle_response lines
+        assert captured_callback is not None
+        cb_response = Mock()
+        cb_response.url = "https://api.example.com/data?page=1"
+        cb_response.status = 200
+        cb_result = captured_callback(cb_response)
+        assert cb_result == cb_response
+
+    def test_fetch_data_empty_response(self, mock_sync_pw):
+        browser, mock_page = self._make_browser(mock_sync_pw)
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.json.return_value = {}
+
+        mock_response_info = Mock()
+        mock_response_info.value = mock_response
+        mock_page.expect_response.return_value.__enter__ = Mock(return_value=mock_response_info)
+        mock_page.expect_response.return_value.__exit__ = Mock(return_value=False)
+
+        result = browser.fetch_data(
+            "https://api.example.com/data",
+            "https://example.com/page"
+        )
+
+        assert result is None
+
+    def test_fetch_data_json_decode_error(self, mock_sync_pw):
+        browser, mock_page = self._make_browser(mock_sync_pw)
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_response.json.side_effect = Exception("Invalid JSON")
+
+        mock_response_info = Mock()
+        mock_response_info.value = mock_response
+        mock_page.expect_response.return_value.__enter__ = Mock(return_value=mock_response_info)
+        mock_page.expect_response.return_value.__exit__ = Mock(return_value=False)
+
+        result = browser.fetch_data(
+            "https://api.example.com/data",
+            "https://example.com/page"
+        )
+
+        assert result is None
+
+    def test_fetch_data_non_200_status(self, mock_sync_pw):
+        browser, mock_page = self._make_browser(mock_sync_pw)
+        mock_response = Mock()
+        mock_response.status = 500
+
+        mock_response_info = Mock()
+        mock_response_info.value = mock_response
+        mock_page.expect_response.return_value.__enter__ = Mock(return_value=mock_response_info)
         mock_page.expect_response.return_value.__exit__ = Mock(return_value=False)
 
         result = browser.fetch_data(
