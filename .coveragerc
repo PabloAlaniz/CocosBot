@@ -1,0 +1,11 @@
+[run]
+source = CocosBot
+omit =
+    CocosBot/__init__.py
+
+[report]
+show_missing = True
+fail_under = 80
+
+[html]
+directory = htmlcov

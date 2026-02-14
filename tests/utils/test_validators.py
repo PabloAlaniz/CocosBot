@@ -26,13 +26,16 @@ class TestValidateOrderParams:
         assert operation == "SELL"
         assert ticker == "GOOGL"
 
-    def test_operation_case_insensitive(self):
+    @pytest.mark.parametrize("input_op,expected", [
+        ("buy", "BUY"),
+        ("sell", "SELL"),
+        ("Buy", "BUY"),
+        ("Sell", "SELL"),
+    ])
+    def test_operation_case_insensitive(self, input_op, expected):
         """Test that operation is normalized to uppercase."""
-        operation, _ = validate_order_params("AAPL", "buy", 1000)
-        assert operation == "BUY"
-        
-        operation, _ = validate_order_params("AAPL", "sell", 1000)
-        assert operation == "SELL"
+        operation, _ = validate_order_params("AAPL", input_op, 1000)
+        assert operation == expected
 
     def test_invalid_ticker_empty_string(self):
         """Test that empty ticker raises ValueError."""
@@ -141,15 +144,18 @@ class TestValidateMarketType:
         assert validate_market_type("cedears") == MarketType.CEDEARS
         assert validate_market_type("Stocks") == MarketType.STOCKS
 
-    def test_all_market_types(self):
+    @pytest.mark.parametrize("type_str,expected", [
+        ("STOCKS", MarketType.STOCKS),
+        ("CEDEARS", MarketType.CEDEARS),
+        ("BONDS_CORP", MarketType.BONDS_CORP),
+        ("BONDS_PUBLIC", MarketType.BONDS_PUBLIC),
+        ("LETTERS", MarketType.LETTERS),
+        ("CAUCION", MarketType.CAUCION),
+        ("FCI", MarketType.FCI),
+    ])
+    def test_all_market_types(self, type_str, expected):
         """Test all valid market types."""
-        assert validate_market_type("STOCKS") == MarketType.STOCKS
-        assert validate_market_type("CEDEARS") == MarketType.CEDEARS
-        assert validate_market_type("BONDS_CORP") == MarketType.BONDS_CORP
-        assert validate_market_type("BONDS_PUBLIC") == MarketType.BONDS_PUBLIC
-        assert validate_market_type("LETTERS") == MarketType.LETTERS
-        assert validate_market_type("CAUCION") == MarketType.CAUCION
-        assert validate_market_type("FCI") == MarketType.FCI
+        assert validate_market_type(type_str) == expected
 
     def test_invalid_market_type_string(self):
         """Test that invalid market type raises ValueError."""

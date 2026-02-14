@@ -9,13 +9,6 @@ class TestMarketService:
     """Tests for MarketService class"""
 
     @pytest.fixture
-    def mock_browser(self):
-        """Create a mock browser instance"""
-        browser = Mock()
-        browser.page = Mock()
-        return browser
-
-    @pytest.fixture
     def market_service(self, mock_browser):
         """Create a MarketService instance with mock browser"""
         return MarketService(mock_browser)
@@ -215,20 +208,11 @@ class TestMarketService:
             result = market_service._get_navigation_ticker_url(market_type)
             assert result is not None, f"No URL for {market_type}"
 
-    def test_configure_operation_buy(self, market_service, mock_browser):
-        """Test configuring buy operation"""
-        # Execute
-        market_service._configure_operation(OrderOperation.BUY.value)
+    @pytest.mark.parametrize("operation", [OrderOperation.BUY, OrderOperation.SELL])
+    def test_configure_operation(self, operation, market_service, mock_browser):
+        """Test configuring buy/sell operation"""
+        market_service._configure_operation(operation.value)
 
-        # Assert
-        mock_browser.click_element.assert_called_once()
-
-    def test_configure_operation_sell(self, market_service, mock_browser):
-        """Test configuring sell operation"""
-        # Execute
-        market_service._configure_operation(OrderOperation.SELL.value)
-
-        # Assert
         mock_browser.click_element.assert_called_once()
 
     @patch('time.sleep')
@@ -242,22 +226,15 @@ class TestMarketService:
         assert mock_browser.click_element.call_count == 2
         mock_browser.fill_input_with_delay.assert_called_once()
 
-    def test_enter_amount_buy(self, market_service, mock_browser):
-        """Test entering amount for buy operation"""
-        # Execute
-        market_service._enter_amount(OrderOperation.BUY.value, "1000,50")
+    @pytest.mark.parametrize("operation,amount", [
+        (OrderOperation.BUY, "1000,50"),
+        (OrderOperation.SELL, "10"),
+    ])
+    def test_enter_amount(self, operation, amount, market_service, mock_browser):
+        """Test entering amount for buy/sell operation"""
+        market_service._enter_amount(operation.value, amount)
 
-        # Assert
         assert mock_browser.click_element.call_count == 1
-        mock_browser.fill_input.assert_called_once()
-
-    def test_enter_amount_sell(self, market_service, mock_browser):
-        """Test entering amount for sell operation"""
-        # Execute
-        market_service._enter_amount(OrderOperation.SELL.value, "10")
-
-        # Assert
-        mock_browser.click_element.assert_called_once()
         mock_browser.fill_input.assert_called_once()
 
     @patch('time.sleep')

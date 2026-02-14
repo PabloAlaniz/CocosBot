@@ -236,6 +236,70 @@ class TestProcessMepData:
         assert "settlementForBuy" not in result["open"]
         assert "settlementForSell" not in result["open"]
 
+    def test_zero_bid_value(self):
+        """Test that zero bid value is processed correctly."""
+        mep_data = {
+            "open": {
+                "short_ticker": "AL30D",
+                "ask": 102.5,
+                "bid": 0.0,
+                "settlementForBuy": "24hs",
+                "settlementForSell": "48hs"
+            },
+            "close": {
+                "short_ticker": "AL30",
+                "ask": 103.0,
+                "bid": 0.0,
+                "settlementForBuy": "24hs",
+                "settlementForSell": "48hs"
+            },
+            "overnight": {
+                "short_ticker": "AL30C",
+                "ask": 102.8,
+                "bid": 0.0,
+                "settlementForBuy": "CI",
+                "settlementForSell": "CI"
+            }
+        }
+
+        result = process_mep_data(mep_data)
+
+        assert result is not None
+        assert result["open"]["bid"] == 0.0
+        assert result["close"]["bid"] == 0.0
+
+    def test_empty_string_fields(self):
+        """Test processing with empty string settlement fields."""
+        mep_data = {
+            "open": {
+                "short_ticker": "",
+                "ask": 0,
+                "bid": 0,
+                "settlementForBuy": "",
+                "settlementForSell": ""
+            },
+            "close": {
+                "short_ticker": "",
+                "ask": 0,
+                "bid": 0,
+                "settlementForBuy": "",
+                "settlementForSell": ""
+            },
+            "overnight": {
+                "short_ticker": "",
+                "ask": 0,
+                "bid": 0,
+                "settlementForBuy": "",
+                "settlementForSell": ""
+            }
+        }
+
+        result = process_mep_data(mep_data)
+
+        assert result is not None
+        assert result["open"]["ticker"] == ""
+        assert result["open"]["settlement_buy"] == ""
+
     def test_numeric_values_preserved(self):
         """Test that numeric values are preserved correctly."""
         mep_data = {

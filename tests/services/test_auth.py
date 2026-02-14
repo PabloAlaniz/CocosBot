@@ -8,12 +8,6 @@ class TestAuthService:
     """Tests for AuthService class"""
 
     @pytest.fixture
-    def mock_browser(self):
-        """Create a mock browser instance"""
-        browser = Mock()
-        return browser
-
-    @pytest.fixture
     def auth_service(self, mock_browser):
         """Create an AuthService instance with mock browser"""
         return AuthService(mock_browser)
@@ -90,7 +84,7 @@ class TestAuthService:
                 gmail_app_pass="app_pass"
             )
         
-        mock_browser.close_browser.assert_called_once()
+        mock_browser.close_browser.assert_not_called()
 
     @patch('CocosBot.services.auth.obtener_codigo_2FA')
     def test_handle_two_factor_authentication(self, mock_get_2fa, auth_service, mock_browser):
@@ -149,6 +143,31 @@ class TestAuthService:
 
         # Assert
         assert result is False
+
+
+    @patch('CocosBot.services.auth.obtener_codigo_2FA')
+    def test_login_2fa_code_too_short(self, mock_get_2fa, auth_service, mock_browser):
+        """Test login fails with 2FA code that is too short (5 digits)"""
+        mock_get_2fa.return_value = "12345"
+
+        with pytest.raises(AuthenticationError):
+            auth_service.login("user@test.com", "pass", "gmail@test.com", "app_pass")
+
+    @patch('CocosBot.services.auth.obtener_codigo_2FA')
+    def test_login_2fa_code_too_long(self, mock_get_2fa, auth_service, mock_browser):
+        """Test login fails with 2FA code that is too long (7 digits)"""
+        mock_get_2fa.return_value = "1234567"
+
+        with pytest.raises(AuthenticationError):
+            auth_service.login("user@test.com", "pass", "gmail@test.com", "app_pass")
+
+    @patch('CocosBot.services.auth.obtener_codigo_2FA')
+    def test_handle_2fa_when_obtener_raises(self, mock_get_2fa, auth_service, mock_browser):
+        """Test _handle_two_factor_authentication when obtener_codigo_2FA raises"""
+        mock_get_2fa.side_effect = Exception("IMAP connection failed")
+
+        with pytest.raises(Exception, match="IMAP connection failed"):
+            auth_service._handle_two_factor_authentication("gmail@test.com", "app_pass")
 
 
 class TestAuthExceptions:

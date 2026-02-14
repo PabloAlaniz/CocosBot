@@ -9,14 +9,6 @@ class TestUserService:
     """Tests for UserService class"""
 
     @pytest.fixture
-    def mock_browser(self):
-        """Create a mock browser instance"""
-        browser = Mock()
-        browser.page = Mock()
-        browser.page.locator = Mock(return_value=Mock())
-        return browser
-
-    @pytest.fixture
     def user_service(self, mock_browser):
         """Create a UserService instance with mock browser"""
         return UserService(mock_browser)
@@ -228,14 +220,6 @@ class TestUserService:
 
 class TestUserServiceIntegration:
     """Integration-style tests for UserService"""
-
-    @pytest.fixture
-    def mock_browser(self):
-        """Create a mock browser with more realistic behavior"""
-        browser = Mock()
-        browser.page = Mock()
-        browser.page.locator = Mock(return_value=Mock())
-        return browser
 
     @pytest.fixture
     def user_service(self, mock_browser):
