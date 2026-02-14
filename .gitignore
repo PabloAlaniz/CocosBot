@@ -25,3 +25,6 @@ htmlcov/
 .env.local
 *.local
 main.py
+
+# Scripts output
+scripts/discovered_endpoints.json

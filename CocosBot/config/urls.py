@@ -26,12 +26,12 @@ API_URLS = {
     "academy": f"{API_ROOT}/v1/home/academy",
     "markets_schedule": f"{API_ROOT}/v1/markets/schedule",
     "markets_tickers": f"{API_ROOT}/v1/markets/tickers",
-    "mep_prices": f"{API_ROOT}/v1/public/mep-prices",
-    "orders": f"{API_ROOT}/v2/orders",
+    "mep_prices": f"{API_ROOT}/v1/usd/prices",
+    "orders": f"{API_ROOT}/orders",
     "portfolio_data": f"{API_ROOT}/portfolio?currency=ARS&from=BROKER",
     "portfolio_balance": f"{API_ROOT}/portfolio/balance?currency=ARS&period=MAX",
     "user_accounts": f"{API_ROOT}/v1/transfers/accounts?currency=",
-    "user_data": f"{API_ROOT}/v1/users/me",
+    "user_data": f"{API_ROOT}/v2/users/me",
 }
 
 

@@ -123,12 +123,12 @@ class TestApiUrls:
     def test_mep_prices_url(self):
         """Test MEP prices URL."""
         assert "mep_prices" in urls.API_URLS
-        assert urls.API_URLS["mep_prices"] == "https://api.cocos.capital/api/v1/public/mep-prices"
+        assert urls.API_URLS["mep_prices"] == "https://api.cocos.capital/api/v1/usd/prices"
 
     def test_orders_url(self):
         """Test orders URL."""
         assert "orders" in urls.API_URLS
-        assert urls.API_URLS["orders"] == "https://api.cocos.capital/api/v2/orders"
+        assert urls.API_URLS["orders"] == "https://api.cocos.capital/api/orders"
 
     def test_portfolio_data_url(self):
         """Test portfolio data URL."""
@@ -150,7 +150,7 @@ class TestApiUrls:
     def test_user_data_url(self):
         """Test user data URL."""
         assert "user_data" in urls.API_URLS
-        assert urls.API_URLS["user_data"] == "https://api.cocos.capital/api/v1/users/me"
+        assert urls.API_URLS["user_data"] == "https://api.cocos.capital/api/v2/users/me"
 
     def test_all_api_urls_start_with_root(self):
         """Test that all API URLs start with API_ROOT."""

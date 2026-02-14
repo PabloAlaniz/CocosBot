@@ -36,6 +36,9 @@ class PlaywrightBrowser:
 
     def close_browser(self):
         """Cierra el navegador y el contexto Playwright."""
+        if getattr(self, '_closed', False):
+            return
+        self._closed = True
         self.browser.close()
         self.playwright.stop()
         logger.info("Navegador cerrado.")

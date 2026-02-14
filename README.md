@@ -4,6 +4,7 @@ CocosBot es un paquete de Python diseñado para automatizar operaciones y obtene
 
 > **📖 Artículo en Medium:** [Automatizando Cocos Capital con Python](https://medium.com/@PabloAlaniz/automatizando-cocos-capital-con-python-d3a0e389277b)
 
+> Funcionando Febrero 2026
 ## 🎯 ¿Por qué CocosBot?
 
 Cocos Capital no ofrece API pública. CocosBot resuelve esto interceptando requests de la web app, permitiendo:
@@ -24,25 +25,25 @@ Cocos Capital no ofrece API pública. CocosBot resuelve esto interceptando reque
 ## Arquitectura
 
 ```plaintext
-cocos_bot/
-├── core/                 # Componentes fundamentales
-│   ├── browser.py       # Abstracción de Playwright
-│   ├── cocos_capital.py # Orquestador principal
-│   ├── exceptions.py    # Sistema de errores
-├── config/              # Configuración centralizada
-│   ├── constants.py     # URLs y configs
-│   ├── urls.py        # Urls de la plataforma
-│   └── selectors.py    # Selectores UI
-│   └── enums.py        # Enums
-├── utils/              # Utilidades
-│   ├── validators.py   # Validación
-│   ├── helpers.py     # Funciones auxiliares
-│   ├── gmail_2fa.py   # Manejo 2FA
-│   └── data_transformations.py
-└── services/           # Lógica de negocio
-    ├── auth.py        # Autenticación
-    ├── market.py      # Operaciones
-    └── user.py        # Gestión de usuario
+CocosBot/
+├── config/
+│   ├── enums.py                # Enumeraciones (Currency, OrderOperation, etc.)
+│   ├── general.py              # Constantes (timeouts, reintentos)
+│   ├── selectors.py            # Selectores CSS de la UI
+│   └── urls.py                 # URLs de la plataforma y API
+├── core/
+│   ├── browser.py              # Abstracción de Playwright
+│   └── cocos_capital.py        # Orquestador principal
+├── services/
+│   ├── auth.py                 # Autenticación + 2FA
+│   ├── market.py               # Operaciones de mercado
+│   └── user.py                 # Datos de usuario y portfolio
+├── utils/
+│   ├── data_transformations.py # Transformaciones de datos
+│   ├── gmail_2fa.py            # Obtención de código 2FA via Gmail
+│   └── validators.py           # Validación de inputs
+scripts/
+└── discover_endpoints.py       # Discovery de endpoints API
 ```
 
 ## Requisitos
@@ -107,8 +108,6 @@ GMAIL_APP_PASS=tu_contraseña_de_aplicación
 ```python
 from CocosBot.core.cocos_capital import CocosCapital
 
-# Configurar credenciales
-
 username = "tu_usuario"
 password = "tu_contraseña"
 gmail_user = "tu_gmail@gmail.com"
@@ -117,25 +116,11 @@ gmail_app_pass = "tu_contraseña_de_aplicación"
 with CocosCapital(username, password, gmail_user, gmail_app_pass, headless=False) as cocos:
     cocos.login()
 
-    # Probar view accounts
-    cuentas = cocos.get_linked_accounts()
-    print("Cuentas:", cuentas)
+    portfolio = cocos.get_portfolio_data()
+    print("Portfolio:", portfolio)
 
-    # Probar get_orders
-    orders = cocos.get_orders()
-    print("Orders:", orders)
-
-    # Probar get_mep_value
-    mep_value = cocos.get_mep_value()
-    print("MEP Value:", mep_value)
-
-    # Probar get_ticker_info
-    ticker_info = cocos.get_ticker_info("AAPL", "CEDEARS")
-    print("Ticker Info:", ticker_info)
-
-    # Probar Create Order
-    order= cocos.create_order("FIPL", "BUY", 20000, 335.5 )
-    print("Order", order)
+    balance = cocos.fetch_portfolio_balance()
+    print("Balance:", balance)
 ```
 ### Métodos Disponibles
 
@@ -156,8 +141,32 @@ with CocosCapital(username, password, gmail_user, gmail_app_pass, headless=False
 - `get_ticker_info(ticker: str, ticker_type: Union[str, MarketType], segment: str = "C") -> Dict[str, Any]`: Obtiene información de un ticker
 - `get_market_schedule() -> Dict[str, Any]`: Obtiene los horarios del mercado
 - `get_orders() -> Dict[str, Any]`: Obtiene las órdenes del usuario
+- `cancel_order(amount: float, quantity: int) -> bool`: Cancela una orden existente
 - `get_mep_value() -> Dict[str, Any]`: Obtiene el valor del dólar MEP
+
 ---
+
+## 🛠️ Herramientas
+
+### Endpoint Discovery
+
+Dado que el commit anterior habia dejado de funcionar por cambios en las urls de las api, se creó un script de discovery para capturar los nuevos endpoints.
+`scripts/discover_endpoints.py` crawlea la web app de Cocos Capital usando BFS y captura todas las llamadas a la API que realiza el frontend.
+
+**Cómo usarlo:**
+```bash
+export COCOS_USERNAME="tu_usuario"
+export COCOS_PASSWORD="tu_contraseña"
+export GMAIL_USER="tu_gmail@gmail.com"
+export GMAIL_APP_PASS="tu_contraseña_de_aplicación"
+
+python scripts/discover_endpoints.py
+```
+
+Genera un archivo `discovered_endpoints.json` con:
+- Todas las páginas visitadas
+- Las llamadas API capturadas por página (URL, método HTTP, status code)
+- Lista consolidada de endpoints únicos
 
 ## 🔧 Troubleshooting
 
@@ -200,21 +209,12 @@ pytest
 
 ## 📋 Roadmap
 
-### Próximas features
+- [ ] CI/CD con GitHub Actions
+- [ ] Aumentar coverage de tests a >80%
 - [ ] Soporte 2FA manual (sin Gmail)
-- [ ] Modo async para operaciones concurrentes
-- [ ] Webhooks para notificaciones de órdenes ejecutadas
 - [ ] CLI para operaciones rápidas desde terminal
 - [ ] Exportar histórico de operaciones a CSV/Excel
-- [ ] Integración con frameworks de backtesting (backtrader, etc.)
 - [ ] Rate limiting inteligente para evitar bloqueos
-- [ ] Soporte para otros brokers argentinos (IOL, etc.)
-
-### Mejoras técnicas
-- [ ] Aumentar coverage a >80%
-- [ ] CI/CD con GitHub Actions
-- [ ] Documentación de API completa con Sphinx
-- [ ] Type stubs para mejor autocompletado en IDEs
 
 ## 🛡️ Seguridad
 

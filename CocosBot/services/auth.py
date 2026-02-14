@@ -52,7 +52,12 @@ class AuthService:
                 "Enviando formulario de login..."
             )
 
-            self._handle_two_factor_authentication(gmail_user, gmail_app_pass)
+            try:
+                self._handle_two_factor_authentication(gmail_user, gmail_app_pass)
+            except Exception:
+                self.browser.take_screenshot("debug_login_failure.png")
+                raise
+
             self._handle_save_device_prompt()
 
             logger.info("Login exitoso.")
@@ -60,7 +65,6 @@ class AuthService:
 
         except Exception as e:
             logger.error("Error durante el proceso de login: %s", e)
-            self.browser.close_browser()
             raise AuthenticationError(f"Error en el proceso de login: {str(e)}")
 
     def _handle_two_factor_authentication(self, gmail_user: str, gmail_app_pass: str) -> None:

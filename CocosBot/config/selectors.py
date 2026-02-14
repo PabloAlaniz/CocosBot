@@ -3,7 +3,7 @@ LOGIN_SELECTORS = {
     "email_input": 'input[type="email"]',
     "password_input": 'input[type="password"]',
     "submit_button": 'button[type="submit"]',
-    "two_factor_container": 'div._inputs_cxnwh_23',
+    "two_factor_container": 'input#input0',
     "save_device_button": 'button:has-text("Sí, guardar como dispositivo seguro")',
 }
 
