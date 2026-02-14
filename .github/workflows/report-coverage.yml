@@ -1,0 +1,43 @@
+name: Report coverage
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install package
+        run: pip install -e ".[dev]" || pip install -e .
+
+      - name: Install test dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Run tests with coverage
+        run: pytest --cov=CocosBot --cov-report=json --cov-report=term --cov-fail-under=0 -q
+        continue-on-error: true
+
+      - name: Report coverage to dashboard
+        env:
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          TOKEN: ${{ secrets.COVERAGE_API_TOKEN }}
+        run: |
+          COVERAGE=$(jq -r '.totals.percent_covered // 0' coverage.json | xargs printf '%.0f')
+          echo "Coverage: ${COVERAGE}%"
+          curl -sS --fail-with-body -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            "${DASHBOARD_URL}/api/repos/${{ github.repository }}/coverage" \
+            -d "{\"coverage\": $COVERAGE, \"commit_sha\": \"${{ github.sha }}\"}"
