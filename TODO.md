@@ -5,6 +5,6 @@
 ## 📥 Inbox
 
 ## 👀 Review
-- [ ] PR #9 - @cortazar - Complete missing docstrings (100% coverage) https://github.com/PabloAlaniz/CocosBot/pull/9
 
 ## ✅ Done
+- [x] PR #9 - @cortazar - Complete missing docstrings (100% coverage) ✅ MERGED https://github.com/PabloAlaniz/CocosBot/pull/9
