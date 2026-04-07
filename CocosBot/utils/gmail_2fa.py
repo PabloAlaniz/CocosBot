@@ -55,6 +55,20 @@ def procesar_html(html_content):
 
 
 def obtener_codigo_2FA(email_address, password, sender_address):
+    """
+    Obtiene el código de autenticación de dos factores desde Gmail.
+    
+    Espera 20 segundos para que llegue el correo, se conecta a Gmail vía IMAP,
+    busca el último correo del remitente especificado y extrae el código 2FA.
+    
+    Args:
+        email_address: Dirección de Gmail del usuario.
+        password: Contraseña de aplicación de Gmail.
+        sender_address: Dirección del remitente que envía el código 2FA.
+        
+    Returns:
+        str | None: Código 2FA extraído del correo, o None si no se encuentra.
+    """
     time.sleep(20)
     mail = conectar_imap(email_address, password)
     ids_correos = buscar_correos(mail, sender_address)

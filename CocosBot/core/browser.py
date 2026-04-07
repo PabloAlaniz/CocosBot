@@ -236,6 +236,15 @@ class PlaywrightBrowser:
 
             # Registrar respuestas generales mientras esperamos una específica
             def handle_response(response):
+                """
+                Callback de Playwright para interceptar y logear respuestas HTTP.
+                
+                Args:
+                    response: Objeto Response de Playwright.
+                    
+                Returns:
+                    Response si la URL coincide con request_url, sino None.
+                """
                 if request_url in response.url:
                     logger.info(f"Respuesta interceptada: URL={response.url}, Estado={response.status}")
                     return response

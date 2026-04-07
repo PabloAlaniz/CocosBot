@@ -153,6 +153,15 @@ class UserService:
         """
 
         def process_response(response):
+            """
+            Extrae el balance total del response JSON.
+            
+            Args:
+                response: Diccionario con la respuesta de la API de Cocos Capital.
+                
+            Returns:
+                float | None: Balance total del portafolio, o None si no está presente.
+            """
             total_balance = response.get('totalBalance')
             if total_balance is not None:
                 logger.info("Total Balance obtenido con éxito: %s", total_balance)
